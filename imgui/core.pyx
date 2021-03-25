@@ -574,7 +574,7 @@ VIEWPORT_FLAGS_OWNED_BY_APP = enums.ImGuiViewportFlags_OwnedByApp               
 include "imgui/common.pyx"
 
 cdef class _ImGuiContext(object):
-    cdef cimgui.ImGuiContext* _ptr
+    #cdef cimgui.ImGuiContext* _ptr
 
     @staticmethod
     cdef from_ptr(cimgui.ImGuiContext* ptr):
