@@ -14,7 +14,8 @@ CXXFLAGS = -I$(IMGUI_DIR)
 CXXFLAGS += -g -Wall -Wformat -fPIC
 # Use our config file instead of built-in imconfig.h
 CXXFLAGS += -DIMGUI_USER_CONFIG=\"$(shell pwd)/imconfig.h\"
-LIBS =
+# XXX: handle Windows/MacOS
+LIBS = -Wl,-rpath,'$$ORIGIN'
 
 ifeq ($(UNAME_S), Linux) #LINUX
 	ECHO_MESSAGE = "Linux"

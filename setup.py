@@ -121,6 +121,8 @@ EXTENSIONS = [
     Extension(
         "imgui.core", extension_sources("imgui/core"),
         extra_compile_args=os_specific_flags,
+        # XXX: handle Windows/MacOS
+        extra_link_args=["-Wl,-rpath,$ORIGIN"],
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
@@ -132,6 +134,8 @@ EXTENSIONS = [
     Extension(
         "imgui.internal", extension_sources("imgui/internal"),
         extra_compile_args=os_specific_flags,
+        # XXX: handle Windows/MacOS
+        extra_link_args=["-Wl,-rpath,$ORIGIN"],
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
