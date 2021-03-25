@@ -126,6 +126,8 @@ EXTENSIONS = [
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
         ] + os_specific_macros + general_macros,
         include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
+        library_dirs=["imgui"],
+        libraries=["imgui"],
     ),
     Extension(
         "imgui.internal", extension_sources("imgui/internal"),
@@ -135,6 +137,8 @@ EXTENSIONS = [
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
         ] + os_specific_macros + general_macros,
         include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
+        library_dirs=["imgui"],
+        libraries=["imgui"],
     ),
 ]
 

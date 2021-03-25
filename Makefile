@@ -19,14 +19,18 @@ bootstrap: .bootstrapped ;
 	pip install -r doc/requirements-dev.txt
 	@touch .bootstrapped
 
-
 .PHONY: clean
 clean:
 	rm -rf imgui/*.cpp imgui/*.c imgui/*.h imgui/*.so build/*
+	make -C shlib clean
 
+.PHONY: solib
+solib: bootstrap
+	make -C shlib
+	cp shlib/libimgui.so imgui/
 
 .PHONY: build
-build: bootstrap
+build: bootstrap solib
 	_CYTHONIZE_WITH_COVERAGE=1 python -m pip install -e . -v
 	python ci/completion.py -o README.md with-pxd imgui/cimgui.pxd imgui/internal.pxd
 

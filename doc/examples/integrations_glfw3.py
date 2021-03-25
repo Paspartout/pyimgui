@@ -4,7 +4,7 @@ import OpenGL.GL as gl
 
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-from testwindow import show_test_window
+#from testwindow import show_test_window
 
 def main():
     imgui.create_context()
@@ -38,8 +38,8 @@ def main():
         imgui.extra.text_ansi_colored("Eggs", 0.2, 1., 0.)
         imgui.end()
 
-        show_test_window()
-        #imgui.show_test_window()
+        #show_test_window()
+        imgui.show_test_window()
 
         gl.glClearColor(1., 1., 1., 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
