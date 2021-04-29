@@ -1,5 +1,6 @@
 #include "py_imconfig.h"
-#include "core.h"
+// #include "core.h"
+#include "embedd.h"
 
 // note: error type can be controlled during compilation
 #ifndef PYIMGUI_CUSTOM_EXCEPTION

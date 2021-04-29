@@ -4,12 +4,16 @@ import OpenGL.GL as gl
 
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-from testwindow import show_test_window
+# from testwindow import show_test_window
+
 
 def main():
     imgui.create_context()
     window = impl_glfw_init()
     impl = GlfwRenderer(window)
+
+    f = float(0.0)
+    counter = int(0)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
@@ -31,15 +35,35 @@ def main():
             imgui.end_main_menu_bar()
 
 
-        imgui.begin("Custom window", True)
-        imgui.text("Bar")
-        imgui.text_ansi("B\033[31marA\033[mnsi ")
-        imgui.text_ansi_colored("Eg\033[31mgAn\033[msi ", 0.2, 1., 0.)
-        imgui.extra.text_ansi_colored("Eggs", 0.2, 1., 0.)
+        # imgui.begin("Custom window", True)
+        # imgui.text("Bar")
+        # imgui.text_ansi("B\033[31marA\033[mnsi ")
+        # imgui.text_ansi_colored("Eg\033[31mgAn\033[msi ", 0.2, 1., 0.)
+        # imgui.extra.text_ansi_colored("Eggs", 0.2, 1., 0.)
+        # imgui.end()
+
+        # show_test_window()
+        imgui.show_test_window()
+
+
+        imgui.begin("Hello, world!")
+
+        imgui.text("This is some useful text.")
+        # ImGui::Checkbox("Demo Window", &show_demo_window)
+        # ImGui::Checkbox("Another Window", &show_another_window)
+
+        # ImGui::SliderFloat("float", &f, 0.0f, 1.0f)
+        # imgui.color_edit3("clear color", (float*)&clear_color)
+
+        if imgui.button("Button"):
+            counter += 1
+        imgui.same_line()
+        imgui.text("counter = %d" % counter)
+
+        imgui.text("Application average %.3f ms/frame (%.1f FPS)" %
+            (float(1000.0) / imgui.get_io().framerate, imgui.get_io().framerate))
         imgui.end()
 
-        show_test_window()
-        #imgui.show_test_window()
 
         gl.glClearColor(1., 1., 1., 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
