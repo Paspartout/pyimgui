@@ -19,6 +19,7 @@ imgui/*.cpp
 imgui/*.h
 imgui/*.c
 shlib/*.o
+imgui/imguicpp/
 
 # Distribution / packaging
 .Python

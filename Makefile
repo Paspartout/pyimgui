@@ -27,7 +27,12 @@ clean:
 .PHONY: solib
 solib: bootstrap
 	make -C shlib
-	cp shlib/libimgui.so imgui/
+	if ! test -d imgui/imguicpp; then mkdir imgui/imguicpp; fi
+	cp shlib/libimgui.so imgui/imguicpp
+	cp shlib/imconfig.h imgui/imguicpp
+	cp imgui-cpp/imgui.h imgui/imguicpp
+	cp imgui-cpp/imgui_internal.h imgui/imguicpp
+	cp imgui-cpp/imstb_textedit.h imgui/imguicpp
 
 .PHONY: build
 build: bootstrap solib
