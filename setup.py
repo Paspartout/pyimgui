@@ -61,12 +61,16 @@ else:  # OS X and Linux
     os_specific_flags = ['-includeconfig-cpp/py_imconfig.h']
     os_specific_macros = []
 
+
 if sys.platform in ('cygwin', 'win32'):
-    os_runtime_library_dirs = ['TODO']
+    os_extra_link_args = ['TODO']
+    lib_extra_link_args = ['TODO']
 if sys.platform == 'darwin':
-    os_runtime_library_dirs = ["@loader_path/../imgui.data"]
+    os_extra_link_args = ['-Wl,-rpath,@loader_path/../imgui.data']
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui.so']
 else:
-    os_runtime_library_dirs = ["$ORIGIN/../imgui.data"]
+    os_extra_link_args = ['-Wl,-rpath,$ORIGIN/../imgui.data']
+    lib_extra_link_args = []
 
 
 if _CYTHONIZE_WITH_COVERAGE:
@@ -124,6 +128,11 @@ class build_ext(_build_ext):
         # use our imconfig.h for the build
         self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
 
+        if sys.platform == 'darwin':
+            from distutils import sysconfig
+            vars = sysconfig.get_config_vars()
+            vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
+
         # call the original build_ext
         self.parent.run(self)
         print("HK build_ext ####")
@@ -174,6 +183,7 @@ class install_egg_info(_install_egg_info):
     def run(self):
         pass
 
+
 EXTRAS_REQUIRE = {
     'Cython':  ['Cython>=0.24,<0.30'],
     'cocos2d': backend_extras(
@@ -199,7 +209,7 @@ EXTENSIONS = [
         "imgui.core", extension_sources("imgui/core"),
         extra_compile_args=os_specific_flags,
         # XXX: handle Windows/MacOS
-        runtime_library_dirs=os_runtime_library_dirs,
+        runtime_library_dirs=os_extra_link_args,
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
@@ -212,7 +222,7 @@ EXTENSIONS = [
         "imgui.internal", extension_sources("imgui/internal"),
         extra_compile_args=os_specific_flags,
         # XXX: handle Windows/MacOS
-        runtime_library_dirs=os_runtime_library_dirs,
+        runtime_library_dirs=os_extra_link_args,
         define_macros=[
             # note: for raising custom exceptions directly in ImGui code
             ('PYIMGUI_CUSTOM_EXCEPTION', None)
@@ -222,6 +232,7 @@ EXTENSIONS = [
         libraries=["imgui"],
     ),
 ]
+
 
 setup(
     name='libimgui',
@@ -242,10 +253,12 @@ setup(
                 'imgui-cpp/imgui_widgets.cpp',
                 'imgui-cpp/imgui_tables.cpp',
             ],
-            runtime_library_dirs=["$ORIGIN"],
+            language="c++",
+            extra_link_args=lib_extra_link_args,
         ),
     ]
 )
+
 
 setup(
     name='imgui',
