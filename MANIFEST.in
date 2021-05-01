@@ -13,6 +13,7 @@ recursive-include config-cpp *.cpp *.h
 # ImGui sources
 recursive-include imgui-cpp *.cpp *.h
 prune imgui-cpp/examples
+prune imgui-cpp/backends
 prune imgui-cpp/extra_fonts
 
 # ansifeed sources

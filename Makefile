@@ -21,21 +21,10 @@ bootstrap: .bootstrapped ;
 
 .PHONY: clean
 clean:
-	rm -rf imgui/*.cpp imgui/*.c imgui/*.h imgui/*.so build/*
-	make -C shlib clean
-
-.PHONY: solib
-solib: bootstrap
-	make -C shlib
-	if ! test -d imgui/imguicpp; then mkdir imgui/imguicpp; fi
-	cp shlib/libimgui.so imgui/imguicpp
-	cp shlib/imconfig.h imgui/imguicpp
-	cp imgui-cpp/imgui.h imgui/imguicpp
-	cp imgui-cpp/imgui_internal.h imgui/imguicpp
-	cp imgui-cpp/imstb_textedit.h imgui/imguicpp
+	rm -rf imgui/*.cpp imgui/*.c imgui/*.h imgui/*.so build/* *.egg-info
 
 .PHONY: build
-build: bootstrap solib
+build: bootstrap
 	_CYTHONIZE_WITH_COVERAGE=1 python -m pip install -e . -v
 	python ci/completion.py -o README.md with-pxd imgui/cimgui.pxd imgui/internal.pxd
 
