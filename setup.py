@@ -2,7 +2,9 @@
 import os
 import sys
 from itertools import chain
+import re
 
+from distutils.sysconfig import get_config_vars, get_config_var
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.develop import develop as _develop
@@ -61,16 +63,29 @@ else:  # OS X and Linux
     os_specific_flags = ['-includeconfig-cpp/py_imconfig.h']
     os_specific_macros = []
 
+#import pprint
+#pprint.pprint(get_config_vars())
+
+lib_suffix = os.path.splitext(get_config_var('EXT_SUFFIX'))[0]
 
 if sys.platform in ('cygwin', 'win32'):
-    os_extra_link_args = ['TODO']
-    lib_extra_link_args = ['TODO']
-if sys.platform == 'darwin':
-    os_extra_link_args = ['-Wl,-rpath,@loader_path/../imgui.data']
-    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui.so']
-else:
-    os_extra_link_args = ['-Wl,-rpath,$ORIGIN/../imgui.data']
+    libraries = ['libimgui'+lib_suffix]
+    os_extra_link_args = []
+
     lib_extra_link_args = []
+    lib_extra_compile_args = ['/DIMGUI_EXPORT']
+elif sys.platform == 'darwin':
+    libraries = ['imgui'+lib_suffix]
+    os_extra_link_args = ['-Wl,-rpath,@loader_path/../imgui.data']
+
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui.so']
+    lib_extra_compile_args = []
+else:
+    libraries = ['imgui'+lib_suffix]
+    os_extra_link_args = ['-Wl,-rpath,$ORIGIN/../imgui.data']
+
+    lib_extra_link_args = []
+    lib_extra_compile_args = []
 
 
 if _CYTHONIZE_WITH_COVERAGE:
@@ -116,6 +131,11 @@ def backend_extras(*requirements):
 
 class build_ext(_build_ext):
     parent = _build_ext
+
+    def get_export_symbols(self, ext):
+        print("HK build_ext.get_export_symbols return []")
+        return []
+
     def run(self):
         print("HK build_ext >>>>")
         print("inplace:", self.inplace)
@@ -126,10 +146,13 @@ class build_ext(_build_ext):
         # self.dump_options()
 
         # use our imconfig.h for the build
-        self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
+        # XXX: consider using CXXFLAGS += -DIMGUI_USER_CONFIG=\"$(shell pwd)/imconfig.h\"
+        if sys.platform in ('cygwin', 'win32'):
+            self.copy_file(os.path.join('config-cpp', 'imconfig-win.h'), os.path.join('imgui-cpp', 'imconfig.h'))
+        else:
+             self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
 
         if sys.platform == 'darwin':
-            from distutils import sysconfig
             vars = sysconfig.get_config_vars()
             vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
@@ -137,28 +160,61 @@ class build_ext(_build_ext):
         self.parent.run(self)
         print("HK build_ext ####")
 
-        orig_file = self.get_ext_fullpath('libimgui')
-        target_dir = 'imgui.data'
-        target_file = os.path.join(target_dir, 'libimgui.so')
-        # print('stage orig_file:', orig_file)
-        # create ./imgui.data/libimgui.so (used for imgui extension build and editable runtime)
-        if not self.dry_run:
-            self.mkpath('imgui.data')
-            self.copy_file(orig_file, target_file)
-            # print('develop target_file:', target_file)
+        # nothing to do in case of a dry-run
+        if self.dry_run:
+            return
 
-            if not self.old_inplace:
-                # create ./build/lib.linux-x86_64-3.9/imgui.data/libimgui.so (used for install)
-                target_dir = os.path.join(self.old_build_lib, 'imgui.data')
-                self.mkpath(target_dir)
-                target_file = os.path.join(target_dir, 'libimgui.so')
-                self.copy_file(orig_file, target_file)
-                # print('install target_file:', target_file)
-                for hdr in ['imconfig.h', 'imgui_internal.h', 'imstb_textedit.h',
-                            'imgui.h', 'imstb_rectpack.h', 'imstb_truetype.h']:
-                    header_file = os.path.join('imgui-cpp', hdr)
-                    self.copy_file(header_file, target_dir)
-                    # print('install header_file:', header_file)
+        print('get_ext_fullname', self.get_ext_fullname('libimgui'))
+        print('get_ext_filename', self.get_ext_filename('libimgui'))
+        print('get_ext_fullpath', self.get_ext_fullpath('libimgui'))
+
+        target_dir = 'imgui.data'
+        self.mkpath(target_dir)
+
+        # shared object (.so, .dll)
+        orig_file = self.get_ext_fullpath('libimgui')
+        target_file = os.path.join(target_dir, self.get_ext_filename('libimgui'))
+        print('original file', orig_file)
+        self.copy_file(orig_file, target_dir)
+        print('develop dll target_file:', target_file)
+
+        # windows specific .lib file
+        if sys.platform in ('cygwin', 'win32'):
+            root, ext = os.path.splitext(self.get_ext_filename('libimgui'))
+            orig_file2 = os.path.join(self.build_temp, 'imgui-cpp', root + '.lib')
+            print('original lib file', orig_file2)
+            target_file2 = os.path.join(target_dir, root + '.lib')
+            self.copy_file(orig_file2, target_dir)
+            print('develop lib target_file:', target_file2)
+
+        if not self.old_inplace:
+            target_dir = os.path.join(self.old_build_lib, 'imgui.data')
+            self.mkpath(target_dir)
+
+            target_file = os.path.join(target_dir, self.get_ext_filename('libimgui'))
+            self.copy_file(orig_file, target_dir)
+            print('install dll target_file:', target_file)
+
+            # print('install target_file:', target_file)
+            for hdr in ['imconfig.h', 'imgui_internal.h', 'imstb_textedit.h',
+                        'imgui.h', 'imstb_rectpack.h', 'imstb_truetype.h']:
+                header_file = os.path.join('imgui-cpp', hdr)
+                self.copy_file(header_file, target_dir)
+                # print('install header_file:', header_file)
+
+            # windows specific .lib file
+            if sys.platform in ('cygwin', 'win32'):
+                target_file2 = os.path.join(target_dir, root + '.lib')
+                self.copy_file(orig_file2, target_dir)
+                print('install lib target_file:', target_file2)
+
+                # fix the imgui_internal.h 'struct IMGUI_API ImPool' declaration/definition,
+                # by removing IMGUI_API
+                header_file = os.path.join(target_dir, 'imgui_internal.h')
+                with open(header_file, 'r') as hdr:
+                    lines = hdr.read()
+                with open(header_file, 'w') as hdr:
+                    hdr.write(re.sub(r'struct IMGUI_API ImPool', 'struct ImPool', lines))
 
         print("HK build_ext <<<<")
 
@@ -215,7 +271,7 @@ EXTENSIONS = [
         ] + os_specific_macros + general_macros,
         include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
         library_dirs=["imgui.data"],
-        libraries=["imgui"],
+        libraries=libraries,
     ),
     Extension(
         "imgui.internal", extension_sources("imgui/internal"),
@@ -227,7 +283,7 @@ EXTENSIONS = [
         ] + os_specific_macros + general_macros,
         include_dirs=['imgui', 'config-cpp', 'imgui-cpp', 'ansifeed-cpp'],
         library_dirs=["imgui.data"],
-        libraries=["imgui"],
+        libraries=libraries,
     ),
 ]
 
@@ -252,6 +308,7 @@ setup(
                 'imgui-cpp/imgui_tables.cpp',
             ],
             language="c++",
+            extra_compile_args=lib_extra_compile_args,
             extra_link_args=lib_extra_link_args,
         ),
     ]

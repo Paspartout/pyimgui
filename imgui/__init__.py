@@ -2,6 +2,8 @@
 VERSION = (1, 3, 1)  # PEP 386
 __version__ = ".".join([str(x) for x in VERSION])
 
+import imgui.__config__
+
 from imgui.core import *  # noqa
 from imgui import core
 from imgui.extra import *  # noqa
