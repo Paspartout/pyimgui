@@ -78,7 +78,7 @@ elif sys.platform == 'darwin':
     libraries = ['imgui'+lib_suffix]
     os_extra_link_args = ['-Wl,-rpath,@loader_path/../imgui.data']
 
-    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui.so']
+    lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui'+get_config_var('EXT_SUFFIX')]
     lib_extra_compile_args = []
 else:
     libraries = ['imgui'+lib_suffix]
@@ -153,7 +153,7 @@ class build_ext(_build_ext):
              self.copy_file(os.path.join('config-cpp', 'imconfig.h'), 'imgui-cpp')
 
         if sys.platform == 'darwin':
-            vars = sysconfig.get_config_vars()
+            vars = get_config_vars()
             vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
         # call the original build_ext
