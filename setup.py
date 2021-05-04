@@ -7,9 +7,9 @@ import re
 from distutils.sysconfig import get_config_vars, get_config_var
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext as _build_ext
-from setuptools.command.develop import develop as _develop
-from setuptools.command.egg_info import egg_info as _egg_info
-from setuptools.command.install_egg_info import install_egg_info as _install_egg_info
+# from setuptools.command.develop import develop as _develop
+# from setuptools.command.egg_info import egg_info as _egg_info
+# from setuptools.command.install_egg_info import install_egg_info as _install_egg_info
 
 
 try:
@@ -81,7 +81,8 @@ elif sys.platform == 'darwin':
     lib_extra_link_args = ['-Wl,-install_name,@loader_path/../imgui.data/libimgui'+get_config_var('EXT_SUFFIX')]
     lib_extra_compile_args = []
 else:
-    libraries = ['imgui'+lib_suffix]
+    # libraries = ['imgui'+lib_suffix]
+    libraries = ['imgui']
     os_extra_link_args = ['-Wl,-rpath,$ORIGIN/../imgui.data']
 
     lib_extra_link_args = []
@@ -128,7 +129,7 @@ def backend_extras(*requirements):
     """
     return ["PyOpenGL"] + list(requirements)
 
-
+'''
 class build_ext(_build_ext):
     parent = _build_ext
 
@@ -238,6 +239,30 @@ class install_egg_info(_install_egg_info):
     parent = _install_egg_info
     def run(self):
         pass
+'''
+
+import setup_lib
+
+class build_ext(_build_ext):
+    parent = _build_ext
+
+    def run(self):
+        print("HK build_ext >>>>")
+
+        # nothing to do in case of a dry-run
+        if not self.dry_run:
+            # provide the supporting library
+            build_dir = os.path.join(self.build_lib, 'imgui.data')
+            setup_lib.build(build_dir, self.build_temp)
+            target_dir = 'imgui.data'
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            self.copy_tree(build_dir, target_dir)
+
+        # call the original build_ext
+        self.parent.run(self)
+
+        print("HK build_ext <<<<")
 
 
 EXTRAS_REQUIRE = {
@@ -287,7 +312,7 @@ EXTENSIONS = [
     ),
 ]
 
-
+'''
 setup(
     name='libimgui',
 
@@ -313,7 +338,7 @@ setup(
         ),
     ]
 )
-
+'''
 
 setup(
     name='imgui',
@@ -329,6 +354,7 @@ setup(
 
     url="https://github.com/swistakm/pyimgui",
 
+    cmdclass = {'build_ext': build_ext},
     ext_modules=cythonize(
         EXTENSIONS,
         compiler_directives=compiler_directives, **cythonize_opts
