@@ -1342,8 +1342,8 @@ def plot_heatmap(str label_id, array.array values, int rows, int cols, double sc
 
 def plot_histogram(str label_id, array.array values, int count, int bins=cimplot.ImPlotBin_Sturges, bool cumulative=False, bool density=False, tuple range=(0.0, 0.0), bool outliers=True, double bar_scale=1.0):
     cdef cimplot.ImPlotRange _range
-    _range.x = range[0]
-    _range.y = range[1]
+    _range.Min = range[0]
+    _range.Max = range[1]
 
     if values.typecode == 'd':
         cimplot.PlotHistogram[double](_bytes(label_id), values.data.as_doubles, count, bins, cumulative, density, _range, outliers, bar_scale)
@@ -1368,6 +1368,13 @@ def plot_histogram(str label_id, array.array values, int count, int bins=cimplot
     else:
         raise ValueError("Style value must be float, double, ImS8, ImU8, ImS16, ImU16, ImS32, ImU32, ImS64, ImU64")
 
+
+def plot_histogram_float_np(str label_id, const float[:] values not None, int count, int bins=cimplot.ImPlotBin_Sturges, bool cumulative=False, bool density=False, tuple range=(0.0, 0.0), bool outliers=True, double bar_scale=1.0):
+    cdef cimplot.ImPlotRange _range
+    _range.Min = range[0]
+    _range.Max = range[1]
+
+    cimplot.PlotHistogram[float](_bytes(label_id), &values[0], count, bins, cumulative, density, _range, outliers, bar_scale)
 
 def plot_histogram_2d(str label_id, array.array xs, array.array ys, int count, int x_bins=cimplot.ImPlotBin_Sturges, int y_bins=cimplot.ImPlotBin_Sturges, bool density=False, tuple range=(0.0, 0.0, 0.0, 0.0), bool outliers=True):
     cdef cimplot.ImPlotRange _X
