@@ -1339,6 +1339,16 @@ def plot_heatmap(str label_id, array.array values, int rows, int cols, double sc
     else:
         raise ValueError("Style value must be float, double, ImS8, ImU8, ImS16, ImU16, ImS32, ImU32, ImS64, ImU64")
 
+def plot_heatmap_float_np(str label_id, const float[:] values, int rows, int cols, double scale_min=0.0, double scale_max=0.0, str label_fmt="%.1f", bounds_min=(0,0), bounds_max=(1,1)):
+    cdef cimplot.ImPlotPoint _bounds_min
+    _bounds_min.x = bounds_min[0]
+    _bounds_min.y = bounds_min[1]
+    cdef cimplot.ImPlotPoint _bounds_max
+    _bounds_max.x = bounds_max[0]
+    _bounds_max.y = bounds_max[1]
+
+    cimplot.PlotHeatmap[float](_bytes(label_id), &values[0], rows, cols, scale_min, scale_max, _bytes(label_fmt), _bounds_min, _bounds_max)
+
 
 def plot_histogram(str label_id, array.array values, int count, int bins=cimplot.ImPlotBin_Sturges, bool cumulative=False, bool density=False, tuple range=(0.0, 0.0), bool outliers=True, double bar_scale=1.0):
     cdef cimplot.ImPlotRange _range
